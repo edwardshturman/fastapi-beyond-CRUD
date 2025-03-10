@@ -1,0 +1,43 @@
+name: Check against Conventional Commits, test, and build
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: "0 7 * * *" # 12:00am PDT
+
+permissions:
+  contents: read
+
+jobs:
+  test-commit:
+    name: Test against Conventional Commits
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+    - uses: webiny/action-conventional-commits@v1.3.0
+
+  test-code:
+    name: Run pytest test cases
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.11"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Test with pytest
+      run: |
+        pytest
+
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag cs486-assignment7-edwardshturman:$(date +%s)
