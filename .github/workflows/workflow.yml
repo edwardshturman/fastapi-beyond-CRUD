@@ -26,6 +26,20 @@ jobs:
         gh pr close $pr_number -R $GITHUB_REPOSITORY -c "Not all commits in this PR adhere to Conventional Commits"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Send email on Conventional Commits check failure
+      if: failure()
+      uses: dawidd6/action-send-mail@v4
+      with:
+        server_address: ${{ secrets.MAIL_SERVER }}
+        server_port: ${{ secrets.MAIL_PORT }}
+        secure: true
+        username: ${{ secrets.MAIL_USERNAME }}
+        password: ${{ secrets.MAIL_PASSWORD }}
+        subject: "GitHub Actions: Conventional Commits check failed"
+        to: ${{ secrets.TO }}
+        from: ${{ secrets.MAIL_FROM }}
+        body: A PR on ${{ GITHUB.REPOSITORY }} failed to adhere to Conventional Commits
+        cc: ${{ secrets.MAIL_USERNAME }}
 
   test-code:
     name: Run pytest test cases
