@@ -20,6 +20,8 @@ jobs:
 
   test-code:
     name: Run pytest test cases
+    needs:
+      - test-commit
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
@@ -37,6 +39,9 @@ jobs:
         pytest
 
   build:
+    name: Build the Docker image
+    needs:
+      - test-code
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
