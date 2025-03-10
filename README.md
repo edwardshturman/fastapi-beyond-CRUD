@@ -1,92 +1,35 @@
 # CS 486 Assignment 7: FastAPI Beyond CRUD
 
-This is the source code for the [FastAPI Beyond CRUD](https://youtube.com/playlist?list=PLEt8Tae2spYnHy378vMlPH--87cfeh33P&si=rl-08ktaRjcm2aIQ) course. The course focuses on FastAPI development concepts that go beyond the basic CRUD operations.
+This is the source repository for my implementation of Assignment 7, which was to add a GitHub Actions workflow to [FastAPI Beyond CRUD](https://github.com/jod35/fastapi-beyond-CRUD) that verifies a PR against the Conventional Commits standard, runs `pytest` test cases, and builds the container image.
 
-For more details, visit the project's [website](https://jod35.github.io/fastapi-beyond-crud-docs/site/).
+## Features
 
-## Table of Contents
+- Verifies a PR to `main` adheres to Conventional Commits and closes the PR if it doesn't
+- Nightly builds at 12am PDT
+- Runs the test suite as specified by `pytest`
+- Auto-fails the workflow if either Conventional Commits or `pytest` fails
+- Sends an email in addition to the GitHub notification on failure
+- Builds a Docker image on success
 
-1. [Getting Started](#getting-started)
-2. [Prerequisites](#prerequisites)
-3. [Project Setup](#project-setup)
-4. [Running the Application](#running-the-application)
-5. [Running Tests](#running-tests)
+## Challenges
+
+- The usual Docker vs. localhost stuff: ironically, it did not, in fact, "work on my machine". Docker was much nicer.
+- I kept running into issues around the `psycopg2` module and requiring an async database driver. The fix was using `postgresql+asyncpg://...` in my `DATABASE_URL` connection string.
+- `pydantic` is set up to *expect* an `.env` file, rather than just reading system environment variables, so simply passing GitHub Secrets did not work. Instead, I appended to an `.env` before running `pytest:`
+
+    ```bash
+    echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+    ```
+
+- I spent way more time on PR closing than was necessary. I searched around for an Action that could do it, until I remembered runners ship with the GitHub CLI, which has a `pr close` subcommand.
 
 ## Getting Started
 
-Follow the instructions below to set up and run your FastAPI project.
-
-### Prerequisites
-
-Ensure you have the following installed:
-
-- Python >= 3.10
-- PostgreSQL
-- Redis
-
-### Project Setup
-
-1. Clone the project repository:
-
-    ```bash
-    git clone https://github.com/edwardshturman/fastapi-beyond-CRUD.git
-    ```
-
-2. Navigate to the project directory:
-
-    ```bash
-    cd fastapi-beyond-CRUD/
-    ```
-
-3. Create and activate a virtual environment:
-
-    ```bash
-    python3 -m venv env
-    source env/bin/activate
-    ```
-
-4. Install the required dependencies:
-
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-5. Set up environment variables by copying the example configuration:
-
-    ```bash
-    cp .env.example .env
-    ```
-
-6. Run database migrations to initialize the database schema:
-
-    ```bash
-    alembic upgrade head
-    ```
-
-7. Open a new terminal and ensure your virtual environment is active. Start the Celery worker (Linux/Unix shell):
-
-    ```bash
-    sh runworker.sh
-    ```
-
-## Running the Application
-
-Start the application:
-
 ```bash
-fastapi dev src/
+git clone https://github.com/edwardshturman/fastapi-beyond-CRUD.git
+cd fastapi-beyond-CRUD/
+cp .env.example .env
+docker compose up
 ```
 
-Alternatively, you can run the application using Docker:
-
-```bash
-docker compose up -d
-```
-
-## Running Tests
-
-Run the tests using this command:
-
-```bash
-pytest
-```
+It just works.
