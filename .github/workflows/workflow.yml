@@ -17,6 +17,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: webiny/action-conventional-commits@v1.3.0
+    - name: Close PR if any commit does not adhere to Conventional Commits
+      if: failure()
+      run: |
+        pr_number=$(echo $GITHUB_REF_NAME | sed "s/\/merge//")
+        gh pr close $pr_number -R $GITHUB_REPOSITORY -c "Not all commits in this PR adhere to Conventional Commits"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   test-code:
     name: Run pytest test cases
